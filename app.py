@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pickle
 import pandas as pd
@@ -23,10 +22,21 @@ for symptom in symptoms:
 
 # Convert to dataframe
 input_df = pd.DataFrame([user_input])
+
+# Safe encoding with error handling
 for col in input_df.columns:
-    input_df[col] = label_encoders[col].transform(input_df[col])
+    try:
+        if col in label_encoders:
+            input_df[col] = label_encoders[col].transform(input_df[col].values)
+        else:
+            st.warning(f"Encoder missing for column: {col}")
+    except Exception as e:
+        st.error(f"Encoding error in {col}: {e}")
 
 # Predict
 if st.button("Predict Disease"):
-    prediction = model.predict(input_df)
-    st.success(f"Predicted Disease: {prediction[0]}")
+    try:
+        prediction = model.predict(input_df)
+        st.success(f"Predicted Disease: {prediction[0]}")
+    except Exception as e:
+        st.error(f"Prediction failed: {e}")
